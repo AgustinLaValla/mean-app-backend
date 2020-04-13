@@ -4,10 +4,14 @@ const Usuario = require('../models/usuario');
 
 const getUsers = async (req, res) => {
 
+    const desde = Number(req.get('desde')) || 0;
+    const paginate = Number(req.get('paginate')) || 5;
+
     try {
-        usuarios = await Usuario.find({}, 'nombre email img role').exec();
-        if (!usuarios) return res.status(400).json({ ok: false, message: 'Usuario no encontrado' })
-        return res.status(200).json({ ok: true, usuarios: usuarios });
+        usuarios = await Usuario.find({}, 'nombre email img role').skip(desde).limit(paginate).exec();
+        if (!usuarios) return res.status(400).json({ ok: false, message: 'Usuario no encontrado' });
+        const counter = await Usuario.count();
+        return res.status(200).json({ ok: true, usuarios: usuarios, total:counter });
 
     } catch (err) {
         console.log(err);
