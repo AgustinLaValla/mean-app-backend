@@ -24,7 +24,7 @@ const login = async (req, res) => {
         //Crear token!!
         usuario.password = ':)';
         const token = await jwt.sign({ usuario: usuario }, SEED, { expiresIn: 14400 }); //horas
-        return res.status(200).json({ ok: true, usuario, token, id: usuario._id });
+        return res.status(200).json({ ok: true, usuario, token, id: usuario._id, menu: obtenerMenu(usuario.role)});
 
     } catch (err) {
         console.log(err);
@@ -54,8 +54,8 @@ const googleSignIn = async (req, res) => {
     const { token } = req.body
     try {
         const googleUser = await verify(token);
-        const usuario = await Usuario.find({ email: googleUser.email });
-        if (usuario.length > 0) {
+        const usuario = await Usuario.findOne({ email: googleUser.email });
+        if (usuario) {
             if (usuario.google === false) {
                 return res.status(400).json({
                     ok: false,
@@ -66,8 +66,9 @@ const googleSignIn = async (req, res) => {
                 return res.json({
                     ok: true,
                     usuario: usuario,
+                    id: usuario._id,
                     token,
-                    id: usuario._id
+                    menu: obtenerMenu(usuario.role)
                 });
             };
 
@@ -85,7 +86,8 @@ const googleSignIn = async (req, res) => {
                 ok: true,
                 usuario: newUsuario,
                 token,
-                id: newUsuario._id
+                id: newUsuario._id,
+                menu: obtenerMenu(newUsuario.role)
             });
         };
     } catch (error) {
@@ -95,4 +97,40 @@ const googleSignIn = async (req, res) => {
 
 };
 
-module.exports = { login, googleSignIn };
+const obtenerMenu = (ROLE) => {
+    let menu = [
+        {
+          titulo: 'Principal',
+          icono: 'mdi mdi-gauge',
+          submenu: [
+            {titulo: 'Dashboard', url:'/dashboard'},
+            {titulo: 'Progress Bar', url: '/progress'},
+            {titulo: 'Gráficas', url: '/graficas1'},
+            {titulo: 'Promesas', url:'/promesas'},
+            {titulo: 'Observables', url:'/rxjs'}
+    
+          ]
+        },
+        {
+        titulo: 'Mantenimientos',
+        icono: 'mdi mdi-folder-lock-open',
+        submenu: [
+
+          {titulo: 'Hospitales', url: '/hospitales'},
+          {titulo: 'Medicos', url: '/medicos'},
+    
+        ]}
+      ];
+
+      if(ROLE === 'ADMIN_ROLE') { 
+          menu[1].submenu.unshift({titulo: 'Usarios', url:'/usuarios'});
+      };
+      return menu;
+};
+
+const renovarToken = (req,res) => {
+    const token = jwt.sign({usuario:req.usuario}, SEED, {expiresIn: 1440});
+    return res.json({ok:true, token});
+}
+
+module.exports = { login, googleSignIn, renovarToken  };

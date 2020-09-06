@@ -7,7 +7,7 @@ const medicosRoutes = require('./routes/medicos.routes');
 const busquedaRoutes = require('./routes/busqueda.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const imagenesRoutes = require('./routes/imagenes.routes');
-
+const cors = require('cors');
 
 const app = express();
 
@@ -17,10 +17,9 @@ app.set('port', process.env.PORT || 3000);
 //Middlewares
 app.use(express.json());
 app.use(express.urlencoded({extended:false})); 
-
+app.use(cors());
 
 //Routes
-app.use('/', appRoutes);
 app.use('/usuario', usuarioRoutes);
 app.use('/login', loginRoutes);
 app.use('/hospitales', hospitalesRoutes);
@@ -28,5 +27,6 @@ app.use('/medicos', medicosRoutes);
 app.use('/busqueda', busquedaRoutes);
 app.use('/upload', uploadRoutes);
 app.use('/img', imagenesRoutes);
+app.use('/', appRoutes);
 
 module.exports = { app };

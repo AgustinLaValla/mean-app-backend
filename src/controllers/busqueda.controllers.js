@@ -43,7 +43,7 @@ async function buscarMedicos(regex) {
 
 async function buscarUsuarios(regex) {
     try {
-        const resultados = await Usuario.find({}, 'nombre email role')
+        const resultados = await Usuario.find({}, 'nombre email role img')
             .or([{ 'nombre': regex }, { 'email': regex }])
             .exec();
         return resultados;

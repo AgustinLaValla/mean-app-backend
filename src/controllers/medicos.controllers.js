@@ -1,8 +1,8 @@
 const Medico = require('../models/medicos');
 
 const getMedicos = async (req, res) => {
-    const desde = Number(req.get('desde')) || 0;
-    const paginate = Number(req.get('paginate')) || 5;
+    const desde = Number(req.query.desde) || 0;
+    const paginate = Number(req.query.paginate) || 5;
     try {
         const medicos = await Medico.find()
                                     .skip(desde)
@@ -10,10 +10,27 @@ const getMedicos = async (req, res) => {
                                     .populate('usuario', 'nombre email')
                                     .populate('hospital', 'nombre')
                                     .exec();
-        const counter = await Medico.count({});
+        const counter = await Medico.estimatedDocumentCount({});
         return res.json({ ok: true, medicos, total: counter });
     } catch (error) {
         return res.status(500).json({ok:false, mensaje: error});
+    };
+};
+
+const getMedico = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const medico = await Medico.findById(id).populate('usuario', 'nombre email').populate('hospital', 'nombre');
+        if(!medico) return res.status(400).json({
+            ok:false, 
+            message:'Medico no encontrado', 
+            error:{message:'Medico no encontrado'}
+        });
+
+    return res.json({ok:true, medico});
+    
+    } catch (error) {
+        return res.status(500).json({ok:false, message:error});
     };
 };
 
@@ -25,7 +42,7 @@ const createMedico = async (req, res) => {
     const newMedico = new Medico({ nombre, img, usuario: userId, hospital });
     try {
         await newMedico.save();
-        return res.json({ ok: true, mensaje: 'Médico Creado' });
+        return res.json({ ok: true, mensaje: 'Médico Creado', medico:newMedico });
     } catch (error) {
         return res.status(500).json({ ok: false, mensaje: error });
     };
@@ -58,4 +75,4 @@ const deleteMedico = async (req ,res) => {
     };
 };
 
-module.exports = { getMedicos, createMedico, updateMedico, deleteMedico };
+module.exports = { getMedicos, createMedico, updateMedico, deleteMedico, getMedico };

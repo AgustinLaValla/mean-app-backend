@@ -4,13 +4,14 @@ const Usuario = require('../models/usuario');
 
 const getUsers = async (req, res) => {
 
-    const desde = Number(req.get('desde')) || 0;
-    const paginate = Number(req.get('paginate')) || 5;
-
+    let desde = Number(req.query.desde) || 0;
+    let paginate = Number(req.query.paginate) || 5;
+    
     try {
-        usuarios = await Usuario.find({}, 'nombre email img role').skip(desde).limit(paginate).exec();
+        usuarios = await Usuario.find({}, 'nombre email img role google').skip(desde).limit(paginate);
         if (!usuarios) return res.status(400).json({ ok: false, message: 'Usuario no encontrado' });
-        const counter = await Usuario.count();
+        
+        const counter = await Usuario.estimatedDocumentCount();
         return res.status(200).json({ ok: true, usuarios: usuarios, total:counter });
 
     } catch (err) {
@@ -65,6 +66,7 @@ const createUser = async (req, res) => {
 
     try {
         await usuario.save();
+        usuario.password = ':)';
         return res.status(201).json({ ok: true, usuario, usuarioToken: req['usuario'] });
 
     } catch (err) {
